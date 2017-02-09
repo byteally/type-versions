@@ -6,7 +6,7 @@
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# LANGUAGE ExplicitForAll        #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 module Type.Versions
   (
   -- * Versioning styles
@@ -42,15 +42,8 @@ type family VersionOrd (v1 :: k) (v2 :: k) :: Ordering
 --             
 -- >>> compareVersion (MajorMinor :: MajorMinor '(0, 0)) (MajorMinor :: MajorMinor '(0, 1)) == LT
 -- True            
-compareVersion :: (SingOrd (VersionOrd (proxy v1) (proxy v2))) => proxy (v1 :: k) -> proxy (v2 :: k) -> Ordering
-compareVersion v1 v2 = singOrd $ cmpVersion v1 v2
-
-cmpVersion :: forall v1 v2 ord proxy ver.
-  ( ver ~ ((proxy :: k -> *) v1)
-  , ord ~ (VersionOrd (proxy v1) (proxy v2))
-  , SingOrd ord
-  ) =>  proxy (v1 :: k) -> proxy (v2 :: k) -> Proxy ord
-cmpVersion _ _ = (Proxy :: Proxy ord)
+compareVersion :: forall v1 v2. (SingOrd (VersionOrd v1 v2)) => v1 -> v2 -> Ordering
+compareVersion _v1 _v2 = singOrd $ (Proxy :: Proxy (VersionOrd v1 v2))
 
 -- | A Style of versioning which has a Major version and a Minor version.
 data MajorMinor (ver :: (Nat, Nat)) = MajorMinor
